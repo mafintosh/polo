@@ -10,8 +10,6 @@ It's available through npm:
 Polo allows your servers/programs to discover eachother without having to talk to a central server and
 without the use of any static configuration as long as they are connected to the same network.
 
-All Polo instances find eachother using UDP multicast and all following communication is done over HTTP.
-
 ## Usage
 
 First create a polo instance:
