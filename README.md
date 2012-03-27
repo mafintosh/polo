@@ -10,7 +10,7 @@ It's available through npm:
 Polo allows your servers/programs to discover eachother without having to talk to a central server and
 without the use of any static configuration as long as they are connected to the same network.
 
-All Polo instances find eachother using UDP multicast and afterwards exchanges state using HTTP
+All Polo instances find eachother using UDP multicast and all following communication is done over HTTP.
 
 ## Usage
 
@@ -27,7 +27,8 @@ Now let's add a service:
 map.put({
 	name:'hello-world', // required - the name of the service
 	address:'example.com', // defaults to the network ip of the machine
-	http: 8080 // we speak http on port 8080. Instead of http it could be https or any other protocol you supply
+	http: 8080 // we speak http on port 8080. 
+	           // Instead of http it could be https or any other protocol you supply
 });
 ```
 

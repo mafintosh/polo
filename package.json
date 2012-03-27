@@ -3,7 +3,7 @@
  "version":"0.1.0",
  "dependencies": {"common":">=0.2.0", "root":">=0.2.0", "request":"*"},
  "repository": "git://github.com/mafintosh/polo",
- "description":"a zero conf discovery service written completely in Javascript",
+ "description":"a zero configuration discovery service written completely in Javascript",
  "keywords": ["zeroconf", "discovery", "configuration", "service discovery"],
  "author": "Mathias Buus Madsen <mathiasbuus@gmail.com>"
 }
