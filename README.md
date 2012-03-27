@@ -30,7 +30,7 @@ map.put({
 });
 ```
 
-If you choose to put multiple services with the same Polo will load balance them for you.
+If you put multiple services with the same name Polo will load balance them for you.
 Now spin up another node process and polo will automatically distribute information about this service:
 
 ``` js
