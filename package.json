@@ -1,7 +1,7 @@
 {
  "name":"polo",
  "version":"0.1.0",
- "dependencies": {"common":">=0.2.0", "root":">=0.2.0", "request":"*"},
+ "dependencies": {"common":">=0.2.0", "root":">=0.2.0", "request":"*", "immortal":"0.4.x"},
  "repository": "git://github.com/mafintosh/polo",
  "description":"a zero configuration discovery service written completely in Javascript",
  "keywords": ["zeroconf", "discovery", "configuration", "service discovery"],

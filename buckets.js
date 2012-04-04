@@ -1,7 +1,9 @@
 var root = require('root');
 var request = require('request');
 var common = require('common');
+var immortal = require('immortal');
 var announce = require('./announce');
+var net = require('net');
 
 var ME = function() {
 	var nets = require('os').networkInterfaces();
@@ -51,8 +53,8 @@ Bucket.prototype.pop = function(key) {
 Bucket.prototype.get = function(key) {
 	return this.all[key] || [];
 };
-Bucket.prototype.destroy = function(pop) {
-	if (pop) this.keys().forEach(this.pop.bind(this));
+Bucket.prototype.destroy = function() {
+	this.keys().forEach(this.pop.bind(this));
 	this.emit('destroy');
 };
 Bucket.prototype.toJSON = function() {
@@ -62,11 +64,42 @@ Bucket.prototype.toJSON = function() {
 var PING_TIMEOUT = 10*0000;
 var HEARTBEAT = 2*60*1000;
 
+var startMonitor = function(callback) {
+	var socket = net.connect('/tmp/monitor.sock');
+
+	socket.on('error', function() {
+		var immortal = require('immortal');
+
+		immortal.start(__dirname+'/monitor.js', {
+			strategy: 'unattached',
+			auto:false,
+			monitor:null
+		}, function(err) {
+			if (err) return callback(err);
+
+			setTimeout(startMonitor.bind(null, callback), 100);
+		});
+	});
+	socket.on('connect', function() {
+		callback(null, socket);
+	});
+};
+
 var listen = function(port) {
 	var that = common.createEmitter();
 	var app = root();
 	var id = process.pid.toString(16)+Math.random().toString(16).substr(2);
 	var heartbeat;
+
+	var onmonitor = common.future();
+	var monitor = function(message) {
+		onmonitor.get(function(err, daemon) {
+			if (!daemon || !daemon.writable) return;
+			daemon.write(JSON.stringify(message)+'\n');
+		});
+	};
+
+	startMonitor(onmonitor.put);
 
 	var cache = {};
 	var own = new Bucket(id);
@@ -74,7 +107,6 @@ var listen = function(port) {
 	var proxy = function(buck) {
 		buck.on('push', function(key, values) {
 			cache = {};
-			if (!that.listeners('push').length) return;
 			values.forEach(function(val) {
 				that.emit('push', key, val);
 			});
@@ -94,6 +126,7 @@ var listen = function(port) {
 		buck.on('destroy', function() {
 			cache = {};
 			delete buckets[uri];			
+			monitor({down:uri});
 		});
 
 		proxy(buck);
@@ -114,7 +147,7 @@ var listen = function(port) {
 	var onresponse = function(buck) {
 		return function(err, res, body) {
 			if (!err && res.statusCode === 200 && body.ack) return;
-			buck.destroy(that.listeners('pop').length);
+			buck.destroy();
 		};
 	};
 	var remote = function(fn) {
@@ -145,6 +178,10 @@ var listen = function(port) {
 	app.get('/'+id+'/ping', function(req, res) {
 		res.json({ack:true});
 	});
+	app.post('/'+id+'/gc', function(req, res) {
+		gc();
+		res.json({ack:true});
+	});
 	app.post('/'+id+'/data/:key', function(req, res) {
 		var buck = bucket(req.headers['x-bucket'] || own.uri);
 		
@@ -157,6 +194,7 @@ var listen = function(port) {
 		gc();
 
 		announce(own.uri, function(uri) {
+			monitor({up:uri});
 			request({
 				uri: uri,
 				json: true
@@ -169,6 +207,7 @@ var listen = function(port) {
 		});
 	});
 
+	that.address = ME;
 	that.push = function(key, val) {
 		own.push(key, val);
 	};
@@ -187,5 +226,4 @@ var listen = function(port) {
 	return that;
 };
 
-listen.address = ME;
 module.exports = listen;

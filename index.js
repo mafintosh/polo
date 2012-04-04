@@ -1,107 +1,74 @@
-var url = require('url');
+var common = require('common');
 var buckets = require('./buckets');
 
-var DEFAULTS = {http:80, https:443};
+var funkify = function(emitter, name) {
+	var fn = emitter[name].bind(emitter);
 
-var normalize = function(input, to) {
-	input = typeof input === 'string' ? {host:input} : input;
-	input.host = input.host || input.hostname || buckets.address;
-	to = to || {};
-
-	var parts = input.host.split(':');
-
-	to.host = parts[0];
-	to.port = input.port || parts[1] && parseInt(parts[1], 10);
-
-	return to;
-};
-var parseService = function(options) {
-	var service = normalize(options, {});
-	var protocol = options.protocol;
-
-	service.name = options.name;
-
-	if (protocol) {
-		service.protocol = protocol.replace(/:$/, '')+':';
-		options[protocol] = options[protocol] || service.port;
-	}
-
-	Object.keys(options).forEach(function(key) {
-		if (key in {name:1, host:1, hostname:1, port:1, protocol:1}) return;
-
-		var value = options[key];
-
-		if (!value) return;
-
-		if (value === true) {
-			value = DEFAULTS[key];
-		}
-		if (typeof value === 'number') {
-			value = service.host+':'+value;
-		}
-		if (typeof value === 'object') {
-			value.host = value.host || service.host;
-			value.port = value.port || DEFAULTS[key];
-		}
-
-		var protocol = key.replace(/:$/, '')+':';
-
-		service[key] = normalize(value);
-		service[key].protocol = protocol;
-		service.protocol = service.protocol || protocol;
-		service.port = service.port || service[key].port;
-		service.host = service.host || service[key].host;
+	Object.keys(emitter).concat(Object.getOwnPropertyNames(emitter.__proto__)).forEach(function(method) {
+		if (method === 'constructor') return;
+		fn[method] = emitter[method].bind(emitter);
 	});
 
-	return service;
+	return fn;
 };
+var host = function(protocol, host, port) {
+	if (protocol === 'http://' && port === 80) return host;
+	if (protocol === 'https://' && port === 443) return host;
 
+	return host+':'+port;
+};
+var polo = function(port) {
+	var that = common.createEmitter();
+	var robin = {};
+	var bucket = buckets(port);
+	var replace = function(_, protocol, key) {
+		var service = that.get(key);
 
-module.exports = function(port) {
-	var data = buckets(port);
-
-	var choose = function(name) {
-		var all = data.get(name);
-
-		return all[(Math.random()*all.length)|0];
-	};
-	var that = function(name) {	
-		name = /^\w+:\/\//.test(name) ? name : 'auto://'+name;
-
-		var parsed = url.parse(name);
-		var service = choose(parsed.host);
-
-		if (!service) return null;
-
-		var protocol = parsed.protocol.replace('auto:', service.protocol).replace(/:$/, '');
-		var result = service[protocol];
-
-		if (!result) return null;
-		if (parsed.path === '/' && name[name.length-1] !== '/') parsed.path = '';
-
-		return result.protocol+'//'+result.host+(DEFAULTS[protocol] === result.port ? '' : ':'+result.port)+(parsed.path || '');
+		return (protocol || '') + (service ? host(protocol, service.host, service.port) : key);
 	};
 
-	that.parse = function(name) {
-		return url.parse(that(name));
-	};
-	that.put = function(options) {
-		if (typeof options === 'string') return zero.get(options);
-		if (!options || !options.name) throw new Error('options.name is required');
+	bucket.on('pop', function(name, service) {
+		that.emit('down', name, service);
+		that.emit('down::'+name, service);
+	});
+	bucket.on('push', function(name, service) {
+		that.emit('up', name, service);
+		that.emit('up::'+name, service);
+	});
 
-		data.push(options.name, parseService(options));
+	that.put = function(service, port) {
+		if (typeof service === 'string' && typeof port === 'string') return that.put({name:service, host:host});
+		if (typeof service === 'string' && typeof port === 'number') return that.put({name:service, port:port});
+		if (!service.name) throw new Error('invalid arguments - name required');
+
+		service.host = service.host || bucket.address;
+
+		if (!service.port) {
+			var parts = service.host.split(':');
+
+			if (parts.length !== 2) throw new Error('invalid arguments - port required');
+			service.host = parts[0];
+			service.port = parseInt(parts[1], 10);
+		}
+
+		bucket.push(service.name, service);
 		return that;
 	};
 
-	Object.keys(DEFAULTS).forEach(function(method) {
-		that[method] = function(options) {
-			if (typeof options === 'string') options = {name:options};
+	that.get = function(name) {
+		var list = that.all(name);
 
-			options.protocol = method;
-			options.port = options.port || DEFAULTS[method];
-			return that.service(options);
-		};
-	});
+		robin[name] = ((name in robin) ? robin[name] : -1)+1;
+		return list[robin[name] %= list.length];
+	};
+	that.all = function(name) {
+		return bucket.get(name);
+	};
+	that.map = function(url) {
+		return url.replace(/^(\w+:\/\/)?([^\/+]+)/g, replace);
+	};
 
-	return that;
+	return funkify(that, 'map');
 };
+
+module.exports = polo;
