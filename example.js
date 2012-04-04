@@ -4,10 +4,6 @@ var root = require('root');
 var map = polo();
 var app = root();
 
-var linkify = function(url) {
-	return '<html><body><a href="'+url+'">'+url+'</a></body></html>';
-};
-
 map.on('up', function(name, service) {
 	console.log('[up]', service.host+':'+service.port);
 });
@@ -16,7 +12,7 @@ map.on('down', function(name, service) {
 });
 
 app.get('/', function(req, res) {
-	res.end(linkify(map('http://hello-world/')));
+	res.end('it like a dynamic hostname: '+map('http://hello-world/'));
 });
 
 app.listen(0, function() {
