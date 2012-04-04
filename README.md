@@ -25,8 +25,7 @@ Now let's add a service:
 map.put({
 	name:'hello-world', // required - the name of the service
 	host:'example.com', // defaults to the network ip of the machine
-	http: 8080 // we speak http on port 8080. 
-	           // Instead of http it could be https or any other protocol you supply
+	port: 8080          // we are listening on port 8080. 
 });
 ```
 
@@ -38,9 +37,9 @@ Now spin up another node process and polo will automatically distribute informat
 var polo = require('polo');
 var map = polo();
 
-setTimeout(function() { // let's give polo a little time to discover it self
-	console.log(map('http://hello-world/')); // should print http://example.com:8080/
-}, 1000);
+map.once('up', function() {
+	console.log(map('http://hello-world/')); // should print http://example.com:8080/	
+});
 ```
 
 It's that easy!
@@ -65,7 +64,7 @@ server.listen(0, function() {
 	
 	map.put({
 		name: 'hello-http',
-		http: port
+		port: port
 	});
 });
 ```
