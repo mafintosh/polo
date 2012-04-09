@@ -16,13 +16,13 @@ First create a polo instance:
 
 ``` js
 var polo = require('polo');
-var map = polo();
+var apps = polo();
 ```
 
 Now let's add a service:
 
 ``` js
-map.put({
+apps.put({
 	name:'hello-world', // required - the name of the service
 	host:'example.com', // defaults to the network ip of the machine
 	port: 8080          // we are listening on port 8080. 
@@ -35,10 +35,10 @@ Now spin up another node process and polo will automatically distribute informat
 ``` js
 // in another process
 var polo = require('polo');
-var map = polo();
+var apps = polo();
 
-map.once('up', function() {
-	console.log(map('http://hello-world/')); // should print http://example.com:8080/	
+apps.once('up', function() {                      // up fires everytime some service joins
+	console.log(apps.url('http://hello-world/')); // should print http://example.com:8080/	
 });
 ```
 
@@ -51,20 +51,26 @@ Let's create an HTTP service. Try to run the program below in a couple of proces
 ``` js
 var http = require('http');
 var polo = require('polo');
-var map = polo();
+var apps = polo();
 
 var server = http.createServer(function(req, res) {
-	res.end('hello-http is available at '+map('http://hello-http/')); 
-})
+	if (req.url !== '/') {
+		res.writeHead(404);
+		res.end();
+		return;
+	}
+
+	res.end('hello-http is available at '+apps.url('http://hello-http/')); 
+});
 
 server.listen(0, function() {
 	var port = server.address().port; // let's find out which port we binded to
-
-	console.log('visit: http://localhost:'+port);
 	
-	map.put({
+	apps.put({
 		name: 'hello-http',
 		port: port
 	});
+
+	console.log('visit: http://localhost:'+port);
 });
 ```

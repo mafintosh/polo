@@ -5,22 +5,6 @@ var immortal = require('immortal');
 var announce = require('./announce');
 var net = require('net');
 
-var ME = function() {
-	var nets = require('os').networkInterfaces();
-
-	for (var i in nets) {
-		var candidate = nets[i].filter(function(item) {
-			return item.family === 'IPv4' && !item.internal;
-		})[0];
-
-		if (candidate) {
-			return candidate.address;
-		}
-	}
-
-	return '127.0.0.1';
-}();
-
 var Bucket = common.emitter(function(uri) {
 	this.uri = uri;
 	this.all = {};
@@ -54,15 +38,31 @@ Bucket.prototype.get = function(key) {
 	return this.all[key] || [];
 };
 Bucket.prototype.destroy = function() {
-	this.keys().forEach(this.pop.bind(this));
 	this.emit('destroy');
+	this.keys().forEach(this.pop.bind(this));
 };
 Bucket.prototype.toJSON = function() {
 	return this.all;
 };
 
+var PROXY = 'address get all push'.split(' ');
 var PING_TIMEOUT = 10*0000;
 var HEARTBEAT = 2*60*1000;
+var ME = function() {
+	var nets = require('os').networkInterfaces();
+
+	for (var i in nets) {
+		var candidate = nets[i].filter(function(item) {
+			return item.family === 'IPv4' && !item.internal;
+		})[0];
+
+		if (candidate) {
+			return candidate.address;
+		}
+	}
+
+	return '127.0.0.1';
+}();
 
 var startMonitor = function(callback) {
 	var socket = net.connect('/tmp/monitor.sock');
@@ -85,6 +85,7 @@ var startMonitor = function(callback) {
 	});
 };
 
+var pool = {};
 var listen = function(port) {
 	var that = common.createEmitter();
 	var app = root();
@@ -222,8 +223,50 @@ var listen = function(port) {
 
 		return list;
 	};
+	that.all = function() {
+		if (cache._all) return cache._all;
+
+		var all = cache._all = {};
+
+		Object.keys(buckets).forEach(function(uri) {
+			var bucket = buckets[uri];
+
+			bucket.keys().forEach(function(key) {
+				Array.prototype.push.apply(all[key] = all[key] || [], bucket.get(key));
+			});			
+		});
+
+		return all;
+	};
+
+	return that;
+};
+var proxy = function(port) {
+	var shared = pool[port] || (pool[port] = listen(port));
+	var that = common.createEmitter();
+
+	process.nextTick(function() {
+		var all = shared.all();
+
+		Object.keys(all).forEach(function(key) {
+			all[key].forEach(function(val) {
+				that.emit('push', key, val);
+			});
+		});
+
+		shared.on('push', function(key, val) {
+			that.emit('push', key, val);
+		});
+		shared.on('pop', function(key, val) {
+			that.emit('pop', key, val);
+		});
+	});
+
+	PROXY.forEach(function(method) {
+		that[method] = shared[method];
+	});
 
 	return that;
 };
 
-module.exports = listen;
+module.exports = proxy;

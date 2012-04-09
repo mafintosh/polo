@@ -1,39 +1,37 @@
 var common = require('common');
 var buckets = require('./buckets');
 
-var funkify = function(emitter, name) {
-	var fn = emitter[name].bind(emitter);
-
-	Object.keys(emitter).concat(Object.getOwnPropertyNames(emitter.__proto__)).forEach(function(method) {
-		if (method === 'constructor') return;
-		fn[method] = emitter[method].bind(emitter);
-	});
-
-	return fn;
-};
+var pool = {}; // since we dont require any config we should be able to safely pool the buckets
 var host = function(protocol, host, port) {
 	if (protocol === 'http://' && port === 80) return host;
 	if (protocol === 'https://' && port === 443) return host;
 
 	return host+':'+port;
 };
+
 var polo = function(port) {
 	var that = common.createEmitter();
 	var robin = {};
-	var bucket = buckets(port);
+	var bucket = pool[port] || (pool[port] = buckets(port));
 	var replace = function(_, protocol, key) {
 		var service = that.get(key);
 
 		return (protocol || '') + (service ? host(protocol, service.host, service.port) : key);
 	};
+	var next = function(name) {
+		var list = that.all(name);
+
+		robin[name] = ((name in robin) ? robin[name] : -1)+1;
+		return list[robin[name] %= list.length];
+	};
 
 	bucket.on('pop', function(name, service) {
 		that.emit('down', name, service);
-		that.emit('down::'+name, service);
+		that.emit(name+'/down', service);
 	});
 	bucket.on('push', function(name, service) {
 		that.emit('up', name, service);
-		that.emit('up::'+name, service);
+		that.emit(name+'/up', service);
 	});
 
 	that.put = function(service, port) {
@@ -51,24 +49,28 @@ var polo = function(port) {
 			service.port = parseInt(parts[1], 10);
 		}
 
+		service.address = service.address || service.host+':'+service.port;
 		bucket.push(service.name, service);
 		return that;
 	};
-
 	that.get = function(name) {
-		var list = that.all(name);
+		var formatted = false;
 
-		robin[name] = ((name in robin) ? robin[name] : -1)+1;
-		return list[robin[name] %= list.length];
+		name = name.replace(/\{([^\}]+)\}/g, function(_, name) {
+			formatted = true;
+			return (next(name) || {address:name}).address;
+		});
+
+		return formatted ? name : next(name);
 	};
 	that.all = function(name) {
-		return bucket.get(name);
+		return name ? bucket.get(name) : bucket.all();
 	};
-	that.map = function(url) {
+	that.url = function(url) {
 		return url.replace(/^(\w+:\/\/)?([^\/+]+)/g, replace);
 	};
 
-	return funkify(that, 'map');
+	return that;
 };
 
 module.exports = polo;
