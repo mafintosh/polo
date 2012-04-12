@@ -37,8 +37,9 @@ Now spin up another node process and polo will automatically distribute informat
 var polo = require('polo');
 var apps = polo();
 
-apps.once('up', function() {                      // up fires everytime some service joins
-	console.log(apps.url('http://hello-world/')); // should print http://example.com:8080/	
+apps.once('up', function() {                       // up fires everytime some service joins
+	console.log(apps.get('hello-world'));          // should print out the joining service
+	console.log(apps.get('http://{hello-world}/')) // shorthand for formatting the address of a service into a string
 });
 ```
 
@@ -60,7 +61,7 @@ var server = http.createServer(function(req, res) {
 		return;
 	}
 
-	res.end('hello-http is available at '+apps.url('http://hello-http/')); 
+	res.end('hello-http is available at http://'+apps.get('hello-http').address); 
 });
 
 server.listen(0, function() {
