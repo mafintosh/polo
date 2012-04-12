@@ -82,11 +82,13 @@ var startMonitor = function(callback) {
 	};
 	var connect = function(callback) {
 		var socket = net.connect(67567, '127.0.0.1');
-
-		socket.on('error', function(err) {
+		var onerror = function() {
 			callback(err);
-		});
+		};
+
+		socket.on('error', onerror);
 		socket.on('connect', function() {
+			socket.removeListener('error', onerror);
 			callback(null, socket);
 		});
 	};
