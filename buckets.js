@@ -65,22 +65,34 @@ var ME = function() {
 }();
 
 var startMonitor = function(callback) {
-	var socket = net.connect('/tmp/monitor.sock');
-
-	socket.on('error', function() {
-		var immortal = require('immortal');
-
+	var retry = function() {
+		connect(function(err, socket) {
+			if (err) return setTimeout(retry, 100);
+			callback(null, socket);
+		});
+	};
+	var fork = function() {
 		immortal.start(__dirname+'/monitor.js', {
 			strategy: 'unattached',
 			auto:false,
 			monitor:null
-		}, function(err) {
-			if (err) return callback(err);
-
-			setTimeout(startMonitor.bind(null, callback), 100);
+		}, function() {
+			retry();
 		});
-	});
-	socket.on('connect', function() {
+	};
+	var connect = function(callback) {
+		var socket = net.connect(67567, '127.0.0.1');
+
+		socket.on('error', function(err) {
+			callback(err);
+		});
+		socket.on('connect', function() {
+			callback(null, socket);
+		});
+	};
+
+	connect(function(err, socket) {
+		if (err) return fork();
 		callback(null, socket);
 	});
 };
@@ -123,6 +135,7 @@ var listen = function(port) {
 
 		if (buck) return buck;
 
+		monitor({up:uri});
 		buck = buckets[uri] = new Bucket(uri);
 		buck.on('destroy', function() {
 			cache = {};
@@ -195,7 +208,6 @@ var listen = function(port) {
 		gc();
 
 		announce(own.uri, function(uri) {
-			monitor({up:uri});
 			request({
 				uri: uri,
 				json: true

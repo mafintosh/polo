@@ -1,11 +1,18 @@
 var net = require('net');
 var request = require('request');
 
-var timeout;
 var sockets = 0;
+var timeout;
 
-var server = net.createServer(function(socket) {
+var noop = function() {};
+var gc = function() {	
+	if (sockets) return;
+
 	clearTimeout(timeout);
+	server.close();
+
+};
+var server = net.createServer(function(socket) {
 	sockets++;
 
 	var buf = '';
@@ -24,27 +31,21 @@ var server = net.createServer(function(socket) {
 			} else {
 				delete hosts[message.down];
 			}
-
-			console.log(message);
 		});
+	});
+	socket.on('end', function() {
+		socket.destroy();
 	});
 	socket.on('close', function() {
 		sockets--;
 
 		Object.keys(hosts).forEach(function(host) {
-			request.post(host+'/gc');
+			request.post(host+'/gc', noop);
 		});
 
-		if (!sockets) {
-			timeout = setTimeout(function() {
-				process.exit(0);
-			}, 10000);
-		}
+		gc();
 	});
 });
 
-server.on('error', function() {
-	process.exit(0);
-});
-
-server.listen('/tmp/monitor.sock');
+timeout = setTimeout(gc, 10000);
+server.listen(67567, '127.0.0.1');
