@@ -29,7 +29,7 @@ apps.put({
 });
 ```
 
-If you put multiple services with the same name Polo will load balance them for you.
+If you put multiple services with the same name Polo will load balance them for you using a round-robin strategy.
 Now spin up another node process and polo will automatically distribute information about this service:
 
 ``` js
