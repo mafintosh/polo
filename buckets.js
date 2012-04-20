@@ -82,7 +82,7 @@ var startMonitor = function(callback) {
 	};
 	var connect = function(callback) {
 		var socket = net.connect(67567, '127.0.0.1');
-		var onerror = function() {
+		var onerror = function(err) {
 			callback(err);
 		};
 
