@@ -1,30 +1,36 @@
 var common = require('common');
 var buckets = require('./buckets');
 
-var pool = {}; // since we dont require any config we should be able to safely pool the buckets
-var host = function(protocol, host, port) {
-	if (protocol === 'http://' && port === 80) return host;
-	if (protocol === 'https://' && port === 443) return host;
-
-	return host+':'+port;
-};
-
 var polo = function(port) {
 	var that = common.createEmitter();
+	var ups = common.createEmitter();
 	var robin = {};
-	var bucket = pool[port] || (pool[port] = buckets(port));
-	var replace = function(_, protocol, key) {
-		var service = that.get(key);
-
-		return (protocol || '') + (service ? host(protocol, service.host, service.port) : key);
-	};
+	var bucket = buckets(port);
 	var next = function(name) {
 		var list = that.all(name);
 
 		robin[name] = ((name in robin) ? robin[name] : -1)+1;
 		return list[robin[name] %= list.length];
 	};
+	var parse = function(name) {
+		var result = {name: name};
+		
+		name.replace(/\{([^\}]+)\}/g, function(_, app) {
+			result.name = app;
+			result.format = name;
+		});
 
+		return result;
+	};
+	var format = function(parsed) {
+		var app = next(parsed.name);
+		
+		if (!app) return null;
+
+		return parsed.format ? parsed.format.replace('{'+parsed.name+'}', app.address) : app;
+	};
+
+	ups.setMaxListeners(0);
 	bucket.on('pop', function(name, service) {
 		that.emit('down', name, service);
 		that.emit(name+'/down', service);
@@ -32,6 +38,7 @@ var polo = function(port) {
 	bucket.on('push', function(name, service) {
 		that.emit('up', name, service);
 		that.emit(name+'/up', service);
+		ups.emit(name);
 	});
 
 	that.put = function(service, port) {
@@ -53,21 +60,22 @@ var polo = function(port) {
 		bucket.push(service.name, service);
 		return that;
 	};
-	that.get = function(name) {
-		var formatted = false;
+	that.get = function(name, onup) {
+		var parsed = parse(name);
 
-		name = name.replace(/\{([^\}]+)\}/g, function(_, name) {
-			formatted = true;
-			return (next(name) || {address:name}).address;
-		});
+		onup = typeof onup === 'function' && onup;
 
-		return formatted ? name : next(name);
+		if (onup && !bucket.get(parsed.name).length) {
+			ups.once(parsed.name, function() {
+				onup(format(parsed));
+			});
+			return;
+		}
+
+		return onup ? onup(format(parsed)) : format(parsed);
 	};
 	that.all = function(name) {
 		return name ? bucket.get(name) : bucket.all();
-	};
-	that.url = function(url) {
-		return url.replace(/^(\w+:\/\/)?([^\/+]+)/g, replace);
 	};
 
 	return that;
