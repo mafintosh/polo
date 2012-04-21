@@ -1,16 +1,16 @@
 var assert = require('assert');
 var polo = require('polo');
-var apps = polo();
+var repo = polo();
 
-apps.put({
+repo.put({
 	name: 'format',
 	port: 5555,
 	host: 'example.com'
 });
 
-assert.equal(apps.get('http://{format}/'), 'http://example.com:5555/');
+assert.equal(repo.get('http://{format}/'), 'http://example.com:5555/');
 
-var get = apps.get('format');
+var get = repo.get('format');
 
 assert.deepEqual({name:get.name, port:get.port, host:get.host}, {name:'format', port:5555, host:'example.com'});
 

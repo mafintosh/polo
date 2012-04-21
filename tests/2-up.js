@@ -1,10 +1,10 @@
 var exec = require('child_process').exec;
 var assert = require('assert');
 var polo = require('polo');
-var apps = polo();
+var repo = polo();
 var count = 0;
 
-apps.on('up', function(name, service) {
+repo.on('up', function(name, service) {
 	assert.ok(name === 'hello-test');
 	assert.ok(service.port === 5555);
 
@@ -15,7 +15,7 @@ apps.on('up', function(name, service) {
 	}
 });
 
-apps.put({
+repo.put({
 	name: 'hello-test',
 	port: 5555
 });

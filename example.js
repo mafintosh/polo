@@ -1,12 +1,12 @@
 var http = require('http');
 var polo = require('./index');
 
-var apps = polo();
+var repo = polo();
 
-apps.on('up', function(name, service) {
+repo.on('up', function(name, service) {
 	console.log('[up]', service.host+':'+service.port);
 });
-apps.on('down', function(name, service) {
+repo.on('down', function(name, service) {
 	console.log('[down]', service.host+':'+service.port);
 });
 
@@ -18,13 +18,13 @@ var server = http.createServer(function(req, res) {
 	}
 
 	res.end(JSON.stringify({
-		service: apps.get('hello-world'),
-		url: apps.get('http://{hello-world}/#test')
+		service: repo.get('hello-world'),
+		url: repo.get('http://{hello-world}/#test')
 	}));
 });
 
 server.listen(0, function() {
-	apps.put({
+	repo.put({
 		name: 'hello-world',
 		port: server.address().port
 	});

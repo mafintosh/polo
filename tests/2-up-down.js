@@ -1,19 +1,19 @@
 var exec = require('child_process').exec;
 var assert = require('assert');
 var polo = require('polo');
-var apps = polo();
+var repo = polo();
 
 var up = 0;
 var down = 0;
 
-apps.on('up', function(name, service) {
+repo.on('up', function(name, service) {
 	if (name !== '2-up-down') return;
 
 	up++;
 
 	assert.ok(service.port === 5555);
 });
-apps.on('down', function(name, service) {
+repo.on('down', function(name, service) {
 	if (name !== '2-up-down') return;
 
 	down++;

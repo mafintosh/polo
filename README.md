@@ -16,13 +16,13 @@ First create a polo instance:
 
 ``` js
 var polo = require('polo');
-var apps = polo();
+var repo = polo();
 ```
 
-Now let's add a service:
+Now let's add a service to the app repository:
 
 ``` js
-apps.put({
+repo.put({
 	name:'hello-world', // required - the name of the service
 	host:'example.com', // defaults to the network ip of the machine
 	port: 8080          // we are listening on port 8080. 
@@ -35,11 +35,11 @@ Now spin up another node process and polo will automatically distribute informat
 ``` js
 // in another process
 var polo = require('polo');
-var apps = polo();
+var repo = polo();
 
-apps.once('up', function() {                       // up fires everytime some service joins
-	console.log(apps.get('hello-world'));          // should print out the joining service
-	console.log(apps.get('http://{hello-world}/')) // shorthand for formatting the address
+repo.once('up', function() {                       // up fires everytime some service joins
+	console.log(repo.get('hello-world'));          // should print out the joining service
+	console.log(repo.get('http://{hello-world}/')) // shorthand for formatting the address
 	                                               // of a service into a string
 });
 ```
@@ -53,7 +53,7 @@ Let's create an HTTP service. Try to run the program below in a couple of proces
 ``` js
 var http = require('http');
 var polo = require('polo');
-var apps = polo();
+var repo = polo();
 
 var server = http.createServer(function(req, res) {
 	if (req.url !== '/') {
@@ -62,13 +62,13 @@ var server = http.createServer(function(req, res) {
 		return;
 	}
 
-	res.end('hello-http is available at http://'+apps.get('hello-http').address); 
+	res.end('hello-http is available at http://'+repo.get('hello-http').address); 
 });
 
 server.listen(0, function() {
 	var port = server.address().port; // let's find out which port we binded to
 	
-	apps.put({
+	repo.put({
 		name: 'hello-http',
 		port: port
 	});

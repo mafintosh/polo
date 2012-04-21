@@ -1,11 +1,12 @@
 var common = require('common');
-var buckets = require('./buckets');
+var repository = require('./repository');
 
 var polo = function(port) {
 	var that = common.createEmitter();
 	var ups = common.createEmitter();
+	var repo = repository(port);
 	var robin = {};
-	var bucket = buckets(port);
+
 	var next = function(name) {
 		var list = that.all(name);
 
@@ -31,22 +32,27 @@ var polo = function(port) {
 	};
 
 	ups.setMaxListeners(0);
-	bucket.on('pop', function(name, service) {
+	repo.on('pop', function(name, service) {
 		that.emit('down', name, service);
 		that.emit(name+'/down', service);
 	});
-	bucket.on('push', function(name, service) {
+	repo.on('push', function(name, service) {
 		that.emit('up', name, service);
 		that.emit(name+'/up', service);
 		ups.emit(name);
 	});
 
 	that.put = function(service, port) {
+		// passed a http server as second argument
+		if (port && typeof port.address === 'function') port = port.address().port;
+		// passed host:port as second argument
 		if (typeof service === 'string' && typeof port === 'string') return that.put({name:service, host:host});
+		// passed port as second argument
 		if (typeof service === 'string' && typeof port === 'number') return that.put({name:service, port:port});
+		// name is required
 		if (!service.name) throw new Error('invalid arguments - name required');
 
-		service.host = service.host || bucket.address;
+		service.host = service.host || repo.address;
 
 		if (!service.port) {
 			var parts = service.host.split(':');
@@ -57,7 +63,7 @@ var polo = function(port) {
 		}
 
 		service.address = service.address || service.host+':'+service.port;
-		bucket.push(service.name, service);
+		repo.push(service.name, service);
 		return that;
 	};
 	that.get = function(name, onup) {
@@ -65,7 +71,7 @@ var polo = function(port) {
 
 		onup = typeof onup === 'function' && onup;
 
-		if (onup && !bucket.get(parsed.name).length) {
+		if (onup && !repo.get(parsed.name).length) {
 			ups.once(parsed.name, function() {
 				onup(format(parsed));
 			});
@@ -75,7 +81,7 @@ var polo = function(port) {
 		return onup ? onup(format(parsed)) : format(parsed);
 	};
 	that.all = function(name) {
-		return name ? bucket.get(name) : bucket.all();
+		return name ? repo.get(name) : repo.all();
 	};
 
 	return that;

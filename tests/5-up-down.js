@@ -1,14 +1,14 @@
 var exec = require('child_process').exec;
 var assert = require('assert');
 var polo = require('polo');
-var apps = polo();
+var repo = polo();
 
 var up = 0;
 var down = 0;
 
 var ports = {1:false,2:false,3:false,4:false,5:false};
 
-apps.on('up', function(name, service) {
+repo.on('up', function(name, service) {
 	if (name !== '5-up-down') return;
 
 	up++;
@@ -18,7 +18,7 @@ apps.on('up', function(name, service) {
 
 	ports[service.port] = true;
 });
-apps.on('down', function(name, service) {
+repo.on('down', function(name, service) {
 	if (name !== '5-up-down') return;
 
 	down++;
