@@ -1,0 +1,286 @@
+var root = require('root');
+var request = require('request');
+var common = require('common');
+var immortal = require('immortal');
+var announce = require('./announce');
+var net = require('net');
+
+var Repository = common.emitter(function(uri) {
+	this.uri = uri;
+	this.all = {};
+});
+
+Repository.prototype.keys = function() {
+	return Object.keys(this.all);
+};
+Repository.prototype.pushAll = function(vals) {
+	var self = this;
+
+	Object.keys(vals).forEach(function(key) {
+		self.push(key, vals[key]);
+	});
+};
+Repository.prototype.push = function(key, val) {
+	var list = this.all[key] = this.get(key);
+
+	val = Array.isArray(val) ? val : [val];
+	list.push.apply(list, val);
+	this.emit('push', key, val);
+};
+Repository.prototype.pop = function(key) {
+	var list = this.all[key];
+
+	if (!list) return;
+	delete this.all[key];
+	this.emit('pop', key, list);
+};
+Repository.prototype.get = function(key) {
+	return this.all[key] || [];
+};
+Repository.prototype.destroy = function() {
+	this.emit('destroy');
+	this.keys().forEach(this.pop.bind(this));
+};
+Repository.prototype.toJSON = function() {
+	return this.all;
+};
+
+var PROXY = 'address get all push'.split(' ');
+var PING_TIMEOUT = 10*0000;
+var HEARTBEAT = 2*60*1000;
+var ME = function() {
+	var nets = require('os').networkInterfaces();
+
+	for (var i in nets) {
+		var candidate = nets[i].filter(function(item) {
+			return item.family === 'IPv4' && !item.internal;
+		})[0];
+
+		if (candidate) {
+			return candidate.address;
+		}
+	}
+
+	return '127.0.0.1';
+}();
+
+var startMonitor = function(callback) {
+	var retry = function() {
+		connect(function(err, socket) {
+			if (err) return setTimeout(retry, 100);
+			callback(null, socket);
+		});
+	};
+	var fork = function() {
+		immortal.start(__dirname+'/monitor.js', {
+			strategy: 'unattached',
+			auto:false,
+			monitor:null
+		}, function() {
+			retry();
+		});
+	};
+	var connect = function(callback) {
+		var socket = net.connect(67567, '127.0.0.1');
+		var onerror = function(err) {
+			callback(err);
+		};
+
+		socket.on('error', onerror);
+		socket.on('connect', function() {
+			socket.removeListener('error', onerror);
+			callback(null, socket);
+		});
+	};
+
+	connect(function(err, socket) {
+		if (err) return fork();
+		callback(null, socket);
+	});
+};
+
+var pool = {};
+var listen = function(port) {
+	var that = common.createEmitter();
+	var app = root();
+	var id = process.pid.toString(16)+Math.random().toString(16).substr(2);
+	var heartbeat;
+
+	var onmonitor = common.future();
+	var monitor = function(message) {
+		onmonitor.get(function(err, daemon) {
+			if (!daemon || !daemon.writable) return;
+			daemon.write(JSON.stringify(message)+'\n');
+		});
+	};
+
+	startMonitor(onmonitor.put);
+
+	var cache = {};
+	var own = new Repository(id);
+	var repos = {me:own};
+	var proxy = function(repo) {
+		repo.on('push', function(key, values) {
+			cache = {};
+			values.forEach(function(val) {
+				that.emit('push', key, val);
+			});
+		});
+		repo.on('pop', function(key, values) {
+			values.forEach(function(val) {
+				that.emit('pop', key, val);
+			});
+		});
+	};
+	var repository = function(uri) {
+		var repo = repos[uri];
+
+		if (repo) return repo;
+
+		monitor({up:uri});
+		repo = repos[uri] = new Repository(uri);
+		repo.on('destroy', function() {
+			cache = {};
+			delete repos[uri];			
+			monitor({down:uri});
+		});
+
+		proxy(repo);
+		return repo;
+	};
+	var gc = function() {
+		remote(function(repo) {
+			request({
+				uri: repo.uri+'/ping',
+				json: true,
+				timeout: PING_TIMEOUT
+			}, onresponse(repo));
+		});
+
+		clearTimeout(heartbeat);
+		heartbeat = setTimeout(gc, HEARTBEAT);
+	};
+	var onresponse = function(repo) {
+		return function(err, res, body) {
+			if (!err && res.statusCode === 200 && body.ack) return;
+			repo.destroy();
+		};
+	};
+	var remote = function(fn) {
+		Object.keys(repos).forEach(function(uri) {
+			if (uri === 'me') return;
+			fn(repos[uri]);
+		});
+	};
+
+	proxy(own);
+	own.on('push', function(key, values) {
+		cache = {};
+		remote(function(repo) {
+			request.post({
+				uri: repo.uri+'/data/'+key,
+				headers: {'x-repository': repo.uri},
+				json: true,
+				body: values
+			}, onresponse(repo));
+		});
+	});
+
+	app.use(root.json);
+
+	app.get('/'+id, function(req, res) {
+		res.json(own);
+	});
+	app.get('/'+id+'/ping', function(req, res) {
+		res.json({ack:true});
+	});
+	app.post('/'+id+'/gc', function(req, res) {
+		gc();
+		res.json({ack:true});
+	});
+	app.post('/'+id+'/data/:key', function(req, res) {
+		var repo = repository(req.headers['x-repository'] || own.uri);
+		
+		repo.push(req.params.key, req.json);
+		res.json({ack:true});
+	});
+
+	app.listen(0, function() {
+		own.uri = 'http://'+ME+':'+app.address().port+'/'+id;
+		gc();
+
+		announce(own.uri, function(uri) {
+			request({
+				uri: uri,
+				json: true
+			}, function(err, res, body) {
+				if (err || res.statusCode !== 200) return;
+
+				repository(uri).pushAll(body);
+				gc();
+			});
+		});
+	});
+
+	that.address = ME;
+	that.push = function(key, val) {
+		own.push(key, val);
+	};
+	that.get = function(key) {
+		if (cache[key]) return cache[key];
+
+		var list = cache[key] = [];
+
+		Object.keys(repos).forEach(function(uri) {
+			Array.prototype.push.apply(list, repos[uri].get(key));
+		});
+
+		return list;
+	};
+	that.all = function() {
+		if (cache._all) return cache._all;
+
+		var all = cache._all = {};
+
+		Object.keys(repos).forEach(function(uri) {
+			var repo = repos[uri];
+
+			repo.keys().forEach(function(key) {
+				Array.prototype.push.apply(all[key] = all[key] || [], repo.get(key));
+			});
+		});
+
+		return all;
+	};
+
+	return that;
+};
+var proxy = function(port) {
+	var shared = pool[port] || (pool[port] = listen(port));
+	var that = common.createEmitter();
+
+	process.nextTick(function() {
+		var all = shared.all();
+
+		Object.keys(all).forEach(function(key) {
+			all[key].forEach(function(val) {
+				that.emit('push', key, val);
+			});
+		});
+
+		shared.on('push', function(key, val) {
+			that.emit('push', key, val);
+		});
+		shared.on('pop', function(key, val) {
+			that.emit('pop', key, val);
+		});
+	});
+
+	PROXY.forEach(function(method) {
+		that[method] = shared[method];
+	});
+
+	return that;
+};
+
+module.exports = proxy;
