@@ -23,12 +23,17 @@ var polo = function(port) {
 
 		return result;
 	};
+	var formatURL = function(url) {
+		if (url.substring(0, 7) === 'http://') return url.replace(':80', '');
+		if (url.substring(0, 8) === 'https://') return url.replace(':443', '');
+		return url;
+	};
 	var format = function(parsed) {
 		var app = next(parsed.name);
 		
 		if (!app) return null;
 
-		return parsed.format ? parsed.format.replace('{'+parsed.name+'}', app.address) : app;
+		return parsed.format ? formatURL(parsed.format.replace('{'+parsed.name+'}', app.address)) : app;
 	};
 
 	ups.setMaxListeners(0);

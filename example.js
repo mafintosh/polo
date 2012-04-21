@@ -29,5 +29,5 @@ server.listen(0, function() {
 		port: server.address().port
 	});
 
-	console.log('visit:', 'localhost:'+server.address().port);
+	console.log('visit:', 'http://localhost:'+server.address().port);
 });
