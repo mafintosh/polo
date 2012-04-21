@@ -1,9 +1,11 @@
 {
  "name":"polo",
+ "author": "Mathias Buus Madsen <mathiasbuus@gmail.com>",
  "version":"0.3.5",
  "dependencies": {"common":">=0.2.0", "root":">=0.2.0", "request":"*", "immortal":"0.4.x"},
  "repository": "git://github.com/mafintosh/polo",
  "description":"a zero configuration discovery service written completely in Javascript",
  "keywords": ["zeroconf", "discovery", "configuration", "service discovery"],
- "author": "Mathias Buus Madsen <mathiasbuus@gmail.com>"
+ "engines": ["node >= 0.6.9"],
+ "scripts": {"test": "node tests/index.js"}
 }
