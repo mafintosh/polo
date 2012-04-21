@@ -37,7 +37,7 @@ Now spin up another node process and polo will automatically distribute informat
 var polo = require('polo');
 var repo = polo();
 
-repo.once('up', function() {                       // up fires everytime some service joins
+repo.once('up', function(name, service) {          // up fires everytime some service joins
 	console.log(repo.get('hello-world'));          // should print out the joining service
 	console.log(repo.get('http://{hello-world}/')) // shorthand for formatting the address
 	                                               // of a service into a string
