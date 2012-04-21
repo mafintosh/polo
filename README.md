@@ -44,7 +44,7 @@ repo.once('up', function(name, service) {          // up fires everytime some se
 });
 ```
 
-It's that easy!
+Additionally there is a `down` event which fires when a services leaves the repository - it's that easy!
 
 ## Example
 
