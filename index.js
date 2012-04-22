@@ -69,7 +69,7 @@ var polo = function(port) {
 
 		service.address = service.address || service.host+':'+service.port;
 		repo.push(service.name, service);
-		return that;
+		return service;
 	};
 	that.get = function(name, onup) {
 		var parsed = parse(name);
