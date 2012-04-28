@@ -75,7 +75,10 @@ var startMonitor = function(callback) {
 		immortal.start(__dirname+'/monitor.js', {
 			strategy: 'unattached',
 			auto:false,
-			monitor:null
+			options: {
+				pidFile: null,
+				output: '/dev/null' // would like to add null here - talk to Andreas about it
+			}
 		}, function() {
 			retry();
 		});
