@@ -77,7 +77,7 @@ var startMonitor = function(callback) {
 			auto:false,
 			options: {
 				pidFile: null,
-				output: '/dev/null' // would like to add null here - talk to Andreas about it
+				output: null
 			}
 		}, function() {
 			retry();
