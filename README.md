@@ -65,7 +65,7 @@ Now if multiple machines are connected to the same network Polo instances will u
 
 ## Example
 
-Let's create an HTTP service. Try to run the program below in a couple of processes on different machines in the same network:
+Let's create an HTTP service. Try to run the program below on different machines in the same network:
 
 ``` js
 var http = require('http');
