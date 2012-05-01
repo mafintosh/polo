@@ -16,13 +16,13 @@ First create a polo instance:
 
 ``` js
 var polo = require('polo');
-var repo = polo();
+var apps = polo();
 ```
 
 Now let's add a service to the app repository:
 
 ``` js
-repo.put({
+apps.put({
 	name:'hello-world', // required - the name of the service
 	host:'example.com', // defaults to the network ip of the machine
 	port: 8080          // we are listening on port 8080. 
@@ -35,12 +35,12 @@ Now spin up another node process and polo will automatically distribute informat
 ``` js
 // in another process
 var polo = require('polo');
-var repo = polo();
+var apps = polo();
 
-repo.once('up', function(name, service) {          // up fires everytime some service joins
-	console.log(repo.get('hello-world'));          // should print out the joining service
-	console.log(repo.get('http://{hello-world}/')) // shorthand for formatting the address
-	                                               // of a service into a string
+apps.once('up', function(name, service) {           // up fires everytime some service joins
+	console.log(apps.get('hello-world'));           // should print out the joining service
+	console.log(apps.get('http://{hello-world}/')); // shorthand for formatting the address
+	                                                // of a service into a string
 });
 ```
 
@@ -48,20 +48,18 @@ Additionally there is a `down` event which fires when a services leaves the repo
 
 ## Discover across the network
 
-When running locally Polo disables network multicast so it will only discover services running on the same machine to make development easier.
-To always enable multicasting provide `multicast: true` or shift to production mode by setting the `NODE_ENV=production` environment variable
+Per default Polo will discover all services running on a network using UDP multicast.
+When developing it can often be very useful to disable this. To do so either provide `multicast: false` or set your `NODE_ENV=development` environment variable
 
 ``` js
-var repo = polo({
-	multicast: true // always enable network multicasting - regardless of NODE_ENV
+var apps = polo({
+	multicast: false // disables network multicast
 });
 ```
 
-or using production mode from the shell
+or using development mode from the shell
 	
-	$ NODE_ENV=production node my-polo-app.js
-
-Now if multiple machines are connected to the same network Polo instances will use UDP multicasting to find eachother!
+	$ NODE_ENV=development node my-polo-app.js # also disables network multicast
 
 ## Example
 
@@ -70,7 +68,7 @@ Let's create an HTTP service. Try to run the program below on different machines
 ``` js
 var http = require('http');
 var polo = require('polo');
-var repo = polo({
+var apps = polo({
 	multicast: true // let's always enable network multicasting for this example
 });
 
@@ -81,13 +79,13 @@ var server = http.createServer(function(req, res) {
 		return;
 	}
 
-	res.end('hello-http is available at http://'+repo.get('hello-http').address); 
+	res.end('hello-http is available at http://'+apps.get('hello-http').address); 
 });
 
 server.listen(0, function() {
 	var port = server.address().port; // let's find out which port we binded to
 	
-	repo.put({
+	apps.put({
 		name: 'hello-http',
 		port: port
 	});
