@@ -48,7 +48,7 @@ Additionally there is a `down` event which fires when a services leaves the repo
 
 ## Discover across the network
 
-When running locally Polo disables network multicast so it will only discover services running on the same machine to make debugging easier.
+When running locally Polo disables network multicast so it will only discover services running on the same machine to make development easier.
 To always enable multicasting provide `multicast: true` or shift to production mode by setting the `NODE_ENV=production` environment variable
 
 ``` js
