@@ -53,7 +53,7 @@ To always enable multicasting provide `multicast: true` or shift to production m
 
 ``` js
 var repo = polo({
-	multicast: true
+	multicast: true // this always enables network multicasting - regardless of NODE_ENV
 });
 ```
 
