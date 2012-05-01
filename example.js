@@ -1,7 +1,9 @@
 var http = require('http');
 var polo = require('./index');
 
-var repo = polo();
+var repo = polo({
+	multicast: true // always enable network multicasting for the example
+});
 
 repo.on('up', function(name, service) {
 	console.log('[up]', service.host+':'+service.port);
