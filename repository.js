@@ -103,7 +103,7 @@ var startMonitor = function(callback) {
 };
 
 var pool = {};
-var listen = function(port) {
+var listen = function(options) {
 	var that = common.createEmitter();
 	var app = root();
 	var id = process.pid.toString(16)+Math.random().toString(16).substr(2);
@@ -212,7 +212,7 @@ var listen = function(port) {
 		own.uri = 'http://'+ME+':'+app.address().port+'/'+id;
 		gc();
 
-		announce(own.uri, function(uri) {
+		announce(own.uri, options, function(uri) {
 			request({
 				uri: uri,
 				json: true
@@ -258,8 +258,9 @@ var listen = function(port) {
 
 	return that;
 };
-var proxy = function(port) {
-	var shared = pool[port] || (pool[port] = listen(port));
+var proxy = function(options) {
+	var key = options.port+'-'+(!!options.sandbox);
+	var shared = pool[key] || (pool[key] = listen(options));
 	var that = common.createEmitter();
 
 	process.nextTick(function() {

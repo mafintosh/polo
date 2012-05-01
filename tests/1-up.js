@@ -1,6 +1,6 @@
 var assert = require('assert');
 var polo = require('polo');
-var repo = polo();
+var repo = polo(require('./fixtures/conf.json'));
 
 repo.once('up', function(name, service) {
 	if (name !== '1-up') return;

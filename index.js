@@ -1,10 +1,10 @@
 var common = require('common');
 var repository = require('./repository');
 
-var polo = function(port) {
+var polo = function(options) {
 	var that = common.createEmitter();
 	var ups = common.createEmitter();
-	var repo = repository(port);
+	var repo = repository(options || {});
 	var robin = {};
 
 	var next = function(name) {

@@ -1,7 +1,7 @@
 var exec = require('child_process').exec;
 var assert = require('assert');
 var polo = require('polo');
-var repo = polo();
+var repo = polo(require('./fixtures/conf.json'));
 var count = 0;
 
 repo.on('up', function(name, service) {

@@ -1,6 +1,6 @@
 var assert = require('assert');
 var polo = require('polo');
-var repo = polo();
+var repo = polo(require('./conf.json'));
 
 repo.put({
 	name: process.argv[2] || 'hello-test',

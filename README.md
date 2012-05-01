@@ -76,3 +76,19 @@ server.listen(0, function() {
 	console.log('visit: http://localhost:'+port);
 });
 ```
+
+## Options
+
+The repo instance can be created with the following set of options:
+
+``` js
+var repo = polo({
+	port: 60547,              // Which port should Polo listen for udp multicast on
+	multicast: '224.0.0.234', // Which address should Polo multicast to
+	sandbox: false            // Determines whether or polo should multicast on the 
+	                          // entire network or just the local machine
+});
+```
+
+The options above are the default options.  
+Setting `sandbox: true` can be useful in development to avoid clashes between services on multiple machines.
