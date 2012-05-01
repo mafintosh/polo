@@ -57,7 +57,7 @@ var repo = polo({
 
 or from the shell
 	
-$ NODE_ENV=production node my-polo-app.js
+	$ NODE_ENV=production node my-polo-app.js
 
 Now if multiple machines are connected to the same network Polo instances will use UDP multicasting to find eachother!
 
