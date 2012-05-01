@@ -46,10 +46,10 @@ repo.once('up', function(name, service) {          // up fires everytime some se
 
 Additionally there is a `down` event which fires when a services leaves the repository - it's that easy!
 
-## Development mode
+## Discover across the network
 
-When running in development mode Polo disables network multicast so it will only discover services running on the same machine.  
-To always enable this provide `multicast: true` or shift to production mode by defining the `NODE_ENV=production` environment variable
+When running locally Polo disables network multicast so it will only discover services running on the same machine to make debugging easier.  
+To always enable multicasting provide `multicast: true` or shift to production mode by defining the `NODE_ENV=production` environment variable
 
 ``` js
 var repo = polo({
