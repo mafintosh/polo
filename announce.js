@@ -10,7 +10,7 @@ module.exports = function(me, options, callback) {
 	var found = 0;
 
 	var port = options.port || MULTICAST_PORT;
-	var multicast = options.multicast || (options.multicast === undefined && process.env.NODE_ENV === 'production');
+	var multicast = !(options.multicast === false || (options.multicast === undefined && process.env.NODE_ENV === 'development'));
 
 	var clear = function() {
 		hosts = {};
@@ -41,7 +41,7 @@ module.exports = function(me, options, callback) {
 	process.env = {};
 	server.bind(port);
 	process.env = env;
-	
+
 	if (!multicast) {
 		server.setMulticastTTL(0);
 	}

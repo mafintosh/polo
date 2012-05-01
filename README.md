@@ -46,7 +46,7 @@ apps.once('up', function(name, service) {           // up fires everytime some s
 
 Additionally there is a `down` event which fires when a services leaves the repository - it's that easy!
 
-## Discover across the network
+## Options
 
 Per default Polo will discover all services running on a network using UDP multicast.
 When developing it can often be very useful to disable this. To do so either provide `multicast: false` or set your `NODE_ENV=development` environment variable
@@ -68,9 +68,7 @@ Let's create an HTTP service. Try to run the program below on different machines
 ``` js
 var http = require('http');
 var polo = require('polo');
-var apps = polo({
-	multicast: true // let's always enable network multicasting for this example
-});
+var apps = polo();
 
 var server = http.createServer(function(req, res) {
 	if (req.url !== '/') {
