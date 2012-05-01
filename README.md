@@ -8,7 +8,7 @@ It's available through npm:
 ## What problem does it solve?
 
 Polo allows your servers/programs to discover eachother without having to talk to a central server and
-without the use of any static configuration as long as they are connected to the same network.
+without the use of any static configuration as long as they are connected to the same local network.
 
 ## Usage
 
@@ -46,6 +46,21 @@ repo.once('up', function(name, service) {          // up fires everytime some se
 
 Additionally there is a `down` event which fires when a services leaves the repository - it's that easy!
 
+Per default Polo does not distribute services to other machines in the same network.  
+If you want to enable this just provide the option `multicast: true` or define the `NODE_ENV=production` environment variable
+
+``` js
+var repo = polo({
+	multicast: true
+});
+```
+
+or from the shell
+	
+$ NODE_ENV=production node my-polo-app.js
+
+Now if multiple machines are connected to the same network Polo instances will use UDP multicasting to find eachother!
+
 ## Example
 
 Let's create an HTTP service. Try to run the program below in a couple of processes:
@@ -76,19 +91,3 @@ server.listen(0, function() {
 	console.log('visit: http://localhost:'+port);
 });
 ```
-
-## Options
-
-The repo instance can be created with the following set of options:
-
-``` js
-var repo = polo({
-	port: 60547,              // Which port should Polo listen for udp multicast on
-	multicast: '224.0.0.234', // Which address should Polo multicast to
-	sandbox: false            // Determines whether or polo should multicast on the 
-	                          // entire network or just the local machine
-});
-```
-
-The options above are the default options.  
-Setting `sandbox: true` can be useful in development to avoid clashes between services on multiple machines.

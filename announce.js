@@ -1,15 +1,16 @@
 var dgram = require('dgram');
 
-var MULTICAST = '224.0.0.234';
-var PORT = 60547;
+var MULTICAST_ADDRESS = '224.0.0.234';
+var MULTICAST_PORT = 60547;
 
 module.exports = function(me, options, callback) {
 	var server = dgram.createSocket('udp4');
 	var env = process.env;
 	var hosts = {};
 	var found = 0;
-	var port = options.port || PORT;
-	var multicast = options.multicast || MULTICAST;
+
+	var port = options.port || MULTICAST_PORT;
+	var multicast = options.multicast || (options.multicast === undefined && process.env.NODE_ENV === 'production');
 
 	var clear = function() {
 		hosts = {};
@@ -19,7 +20,7 @@ module.exports = function(me, options, callback) {
 	};
 	var send = function(msg) {
 		msg = new Buffer(msg);
-		server.send(msg, 0, msg.length, port, multicast);
+		server.send(msg, 0, msg.length, port, MULTICAST_ADDRESS);
 	};
 	var find = function() {
 		var then = found;
@@ -40,10 +41,12 @@ module.exports = function(me, options, callback) {
 	process.env = {};
 	server.bind(port);
 	process.env = env;
-	if (options.sandbox) {
+	
+	if (!multicast) {
 		server.setMulticastTTL(0);
 	}
-	server.addMembership(multicast);
+
+	server.addMembership(MULTICAST_ADDRESS);
 	server.on('message', function(message, rinfo) {
 		var parts = message.toString().split(';');
 		var type = parts[0];
