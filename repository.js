@@ -259,7 +259,10 @@ var listen = function(options) {
 	return that;
 };
 var proxy = function(options) {
-	var key = options.port+'-'+(!!options.sandbox);
+	var key = Object.keys(options).sort().reduce(function(result, key) {
+		return result+','+key+'='+options[key];
+	}, 'key');
+
 	var shared = pool[key] || (pool[key] = listen(options));
 	var that = common.createEmitter();
 
