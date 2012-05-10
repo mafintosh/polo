@@ -5,13 +5,11 @@ var polo = function(options) {
 	var that = common.createEmitter();
 	var ups = common.createEmitter();
 	var repo = repository(options || {});
-	var robin = {};
 
 	var next = function(name) {
 		var list = that.all(name);
 
-		robin[name] = ((name in robin) ? robin[name] : -1)+1;
-		return list[robin[name] %= list.length];
+		return list[Math.floor(Math.random()*list.length)];
 	};
 	var parse = function(name) {
 		var result = {name: name};

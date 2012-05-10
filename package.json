@@ -1,7 +1,7 @@
 {
  "name":"polo",
  "author": "Mathias Buus Madsen <mathiasbuus@gmail.com>",
- "version":"0.4.2",
+ "version":"0.4.3",
  "dependencies": {"common":">=0.2.0", "root":">=0.2.0", "request":"*", "immortal":">=0.5.1 <0.6.0"},
  "repository": "git://github.com/mafintosh/polo",
  "description":"a zero configuration discovery service written completely in Javascript",
