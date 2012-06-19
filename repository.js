@@ -208,8 +208,8 @@ var listen = function(options) {
 		res.json({ack:true});
 	});
 
-	app.listen(function(port) {
-		own.uri = 'http://'+ME+':'+port+'/'+id;
+	app.listen(function(addr, server) {
+		own.uri = 'http://'+ME+':'+server.address().port+'/'+id;
 		gc();
 
 		announce(own.uri, options, function(uri) {
