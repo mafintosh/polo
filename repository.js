@@ -1,9 +1,9 @@
-var root = require('root');
-var request = require('request');
-var common = require('common');
-var immortal = require('immortal');
+var root     = require('root');
+var request  = require('request');
+var common   = require('common');
+var proc     = require('child_process');
+var net      = require('net');
 var announce = require('./announce');
-var net = require('net');
 
 var Repository = common.emitter(function(uri) {
 	this.uri = uri;
@@ -72,16 +72,13 @@ var startMonitor = function(callback) {
 		});
 	};
 	var fork = function() {
-		immortal.start(__dirname+'/monitor.js', {
-			strategy: 'unattached',
-			auto:false,
-			options: {
-				pidFile: null,
-				output: null
-			}
-		}, function() {
-			retry();
+		var child = proc.spawn('node', [__dirname+'/monitor.js'], {
+			detached:true,
+			stdio:['ignore','ignore','ignore']
 		});
+
+		child.unref();
+		retry();
 	};
 	var connect = function(callback) {
 		var socket = net.connect(67567, '127.0.0.1');
