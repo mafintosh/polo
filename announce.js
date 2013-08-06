@@ -42,11 +42,8 @@ module.exports = function(me, options, callback) {
 	server.bind(port);
 	process.env = env;
 
-	if (!multicast) {
-		server.setMulticastTTL(0);
-	}
-
 	server.on('listening', function() {
+		if (!multicast) server.setMulticastTTL(0);
 		server.addMembership(MULTICAST_ADDRESS);
 	});
 
