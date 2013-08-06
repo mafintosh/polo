@@ -46,7 +46,10 @@ module.exports = function(me, options, callback) {
 		server.setMulticastTTL(0);
 	}
 
-	server.addMembership(MULTICAST_ADDRESS);
+	server.on('listening', function() {
+		server.addMembership(MULTICAST_ADDRESS);
+	});
+
 	server.on('message', function(message, rinfo) {
 		var parts = message.toString().split(';');
 		var type = parts[0];
