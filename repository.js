@@ -46,7 +46,7 @@ Repository.prototype.toJSON = function() {
 };
 
 var PROXY = 'address get all push'.split(' ');
-var PING_TIMEOUT = 10*0000;
+var PING_TIMEOUT = 10*1000;
 var HEARTBEAT = 2*60*1000;
 var ME = function() {
 	var nets = require('os').networkInterfaces();
@@ -141,7 +141,7 @@ var listen = function(options) {
 		repo = repos[uri] = new Repository(uri);
 		repo.on('destroy', function() {
 			cache = {};
-			delete repos[uri];			
+			delete repos[uri];
 			monitor({down:uri});
 		});
 
@@ -200,7 +200,7 @@ var listen = function(options) {
 	});
 	app.post('/'+id+'/data/:key', function(req, res) {
 		var repo = repository(req.headers['x-repository'] || own.uri);
-		
+
 		repo.push(req.params.key, req.json);
 		res.json({ack:true});
 	});
