@@ -13,7 +13,7 @@ var polo = function(options) {
 	};
 	var parse = function(name) {
 		var result = {name: name};
-		
+
 		name.replace(/\{([^\}]+)\}/g, function(_, app) {
 			result.name = app;
 			result.format = name;
@@ -28,7 +28,7 @@ var polo = function(options) {
 	};
 	var format = function(parsed) {
 		var app = next(parsed.name);
-		
+
 		if (!app) return null;
 
 		return parsed.format ? formatURL(parsed.format.replace('{'+parsed.name+'}', app.address)) : app;
@@ -43,6 +43,9 @@ var polo = function(options) {
 		that.emit('up', name, service);
 		that.emit(name+'/up', service);
 		ups.emit(name);
+	});
+	repo.on('error', function(error) {
+		that.emit('error', error);
 	});
 
 	that.put = function(service, port) {

@@ -44,7 +44,11 @@ module.exports = function(me, options, callback) {
 
 	server.on('listening', function() {
 		if (!multicast) server.setMulticastTTL(0);
-		server.addMembership(MULTICAST_ADDRESS);
+		try {
+			server.addMembership(MULTICAST_ADDRESS);
+		} catch (e) {
+			callback(e);
+		}
 	});
 
 	server.on('message', function(message, rinfo) {
@@ -62,7 +66,7 @@ module.exports = function(me, options, callback) {
 		if (!hosts[from]) {
 			found++;
 			hosts[from] = 1;
-			callback(from.split('@')[1]);
+			callback(null, from.split('@')[1]);
 		}
 	});
 

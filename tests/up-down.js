@@ -1,6 +1,6 @@
 var exec = require('child_process').exec;
 var assert = require('assert');
-var polo = require('polo');
+var polo = require('../index.js');
 var repo = polo(require('./fixtures/conf.json'));
 
 repo.once('up', function(name, service) {

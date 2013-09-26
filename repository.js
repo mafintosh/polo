@@ -72,7 +72,7 @@ var startMonitor = function(callback) {
 		});
 	};
 	var fork = function() {
-		var child = proc.fork('monitor.js', {
+		var child = proc.fork(__dirname+'/monitor.js', {
 			detached:true,
 			stdio:['ignore','ignore','ignore']
 		});
@@ -209,7 +209,12 @@ var listen = function(options) {
 		own.uri = 'http://'+ME+':'+server.address().port+'/'+id;
 		gc();
 
-		announce(own.uri, options, function(uri) {
+		announce(own.uri, options, function(error, uri) {
+			if (error) {
+				that.emit('error', error);
+				return;
+			}
+
 			request({
 				uri: uri,
 				json: true
@@ -274,6 +279,9 @@ var proxy = function(options) {
 		});
 		shared.on('pop', function(key, val) {
 			that.emit('pop', key, val);
+		});
+		shared.on('error', function(error) {
+			that.emit('error', error);
 		});
 	});
 
