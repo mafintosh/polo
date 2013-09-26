@@ -21,4 +21,4 @@ exec('node '+__dirname+'/fixtures/put-and-close.js up-down', function(err) {
 
 setTimeout(function() {
 	assert.ok(false, 'timeout');
-}, 1000);
+}, 5000);
