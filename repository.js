@@ -3,6 +3,7 @@ var request  = require('request');
 var common   = require('common');
 var proc     = require('child_process');
 var net      = require('net');
+var path     = require('path');
 var announce = require('./announce');
 
 var Repository = common.emitter(function(uri) {
@@ -72,7 +73,7 @@ var startMonitor = function(callback) {
 		});
 	};
 	var fork = function() {
-		var child = proc.fork(__dirname+'/monitor.js', {
+		var child = proc.fork(path.join(__dirname,'monitor.js'), {
 			detached:true,
 			stdio:['ignore','ignore','ignore']
 		});
