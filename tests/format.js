@@ -1,5 +1,5 @@
 var assert = require('assert');
-var polo = require('polo');
+var polo = require('../index.js');
 var repo = polo(require('./fixtures/conf.json'));
 
 repo.put({
