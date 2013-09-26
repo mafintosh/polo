@@ -72,7 +72,7 @@ var startMonitor = function(callback) {
 		});
 	};
 	var fork = function() {
-		var child = proc.fork('monitor.js', {
+		var child = proc.fork(__dirname+'/monitor.js', {
 			detached:true,
 			stdio:['ignore','ignore','ignore']
 		});
