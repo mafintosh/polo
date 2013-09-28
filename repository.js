@@ -115,7 +115,9 @@ var listen = function(options) {
 		});
 	};
 
-	startMonitor(onmonitor.put);
+	if (options.useMonitor) {
+		startMonitor(onmonitor.put);
+	}
 
 	var cache = {};
 	var own = new Repository(id);
