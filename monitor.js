@@ -5,7 +5,7 @@ var sockets = 0;
 var timeout;
 
 var noop = function() {};
-var gc = function() {	
+var gc = function() {
 	if (sockets) return;
 
 	clearTimeout(timeout);
@@ -32,6 +32,9 @@ var server = net.createServer(function(socket) {
 				delete hosts[message.down];
 			}
 		});
+	});
+	socket.on('error', function() {
+		socket.destroy();
 	});
 	socket.on('end', function() {
 		socket.destroy();
