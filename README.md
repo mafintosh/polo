@@ -25,7 +25,7 @@ Now let's add a service to the app repository:
 apps.put({
 	name:'hello-world', // required - the name of the service
 	host:'example.com', // defaults to the network ip of the machine
-	port: 8080          // we are listening on port 8080. 
+	port: 8080          // we are listening on port 8080.
 });
 ```
 
@@ -53,12 +53,13 @@ When developing it can often be very useful to disable this. To do so either pro
 
 ``` js
 var apps = polo({
-	multicast: false // disables network multicast
+	multicast: false // disables network multicast,
+	monitor: true    // fork a monitor for faster failure detection
 });
 ```
 
 or using development mode from the shell
-	
+
 	$ NODE_ENV=development node my-polo-app.js # also disables network multicast
 
 ## Example
@@ -77,12 +78,12 @@ var server = http.createServer(function(req, res) {
 		return;
 	}
 
-	res.end('hello-http is available at http://'+apps.get('hello-http').address); 
+	res.end('hello-http is available at http://'+apps.get('hello-http').address);
 });
 
 server.listen(0, function() {
 	var port = server.address().port; // let's find out which port we binded to
-	
+
 	apps.put({
 		name: 'hello-http',
 		port: port
@@ -97,9 +98,9 @@ server.listen(0, function() {
 **This software is licensed under "MIT"**
 
 > Copyright (c) 2012 Mathias Buus Madsen <mathiasbuus@gmail.com>
-> 
+>
 > Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the 'Software'), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-> 
+>
 > The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-> 
+>
 > THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
