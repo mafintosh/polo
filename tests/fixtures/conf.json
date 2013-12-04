@@ -1,4 +1,5 @@
 {
 	"port":60558,
-	"multicast": false
+	"multicast": false,
+	"monitor": true
 }

@@ -115,7 +115,7 @@ var listen = function(options) {
 		});
 	};
 
-	if (options.useMonitor) {
+	if (options.useMonitor || options.monitor) {
 		startMonitor(onmonitor.put);
 	}
 
