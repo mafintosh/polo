@@ -53,8 +53,9 @@ When developing it can often be very useful to disable this. To do so either pro
 
 ``` js
 var apps = polo({
-	multicast: false // disables network multicast,
-	monitor: true    // fork a monitor for faster failure detection
+	multicast: false     // disables network multicast,
+	monitor: true        // fork a monitor for faster failure detection,
+	heartbeat: 2*60*1000 // set the service heartbeat interval (defaults to 2min)
 });
 ```
 
