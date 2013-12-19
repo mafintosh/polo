@@ -161,7 +161,7 @@ var listen = function(options) {
 		});
 
 		clearTimeout(heartbeat);
-		heartbeat = setTimeout(gc, HEARTBEAT);
+		heartbeat = setTimeout(gc, options.heartbeat || HEARTBEAT);
 	};
 	var onresponse = function(repo) {
 		return function(err, res, body) {
