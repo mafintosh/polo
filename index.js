@@ -54,15 +54,19 @@ var polo = function(options) {
 		// passed a http server as second argument
 		if (port && typeof port.address === 'function') port = port.address().port;
 		// passed host:port as second argument
-		if (typeof service === 'string' && typeof port === 'string') return that.put({
-			name: service,
-			host: port
-		});
+		if (typeof service === 'string' && typeof port === 'string') {
+			return that.put({
+				name: service,
+				host: port
+			});
+		}
 		// passed port as second argument
-		if (typeof service === 'string' && typeof port === 'number') return that.put({
-			name: service,
-			port: port
-		});
+		if (typeof service === 'string' && typeof port === 'number') {
+			return that.put({
+				name: service,
+				port: port
+			});
+		}
 		// name is required
 		if (!service.name) throw new Error('invalid arguments - name required');
 
