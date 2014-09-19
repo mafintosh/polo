@@ -6,49 +6,49 @@ var timeout;
 
 var noop = function() {};
 var gc = function() {
-	if (sockets) return;
+  if (sockets) return;
 
-	clearTimeout(timeout);
-	server.close();
+  clearTimeout(timeout);
+  server.close();
 
 };
 var server = net.createServer(function(socket) {
-	sockets++;
+  sockets++;
 
-	var buf = '';
-	var hosts = {};
+  var buf = '';
+  var hosts = {};
 
-	socket.setEncoding('utf-8');
-	socket.on('data', function(message) {
-		var messages = (buf + message).split('\n');
+  socket.setEncoding('utf-8');
+  socket.on('data', function(message) {
+    var messages = (buf + message).split('\n');
 
-		buf = messages.pop();
-		messages.forEach(function(message) {
-			message = JSON.parse(message);
+    buf = messages.pop();
+    messages.forEach(function(message) {
+      message = JSON.parse(message);
 
-			if (message.up) {
-				hosts[message.up] = 1;
-			} else {
-				delete hosts[message.down];
-			}
-		});
-	});
-	socket.on('error', function() {
-		socket.destroy();
-	});
-	socket.on('end', function() {
-		socket.destroy();
-	});
-	socket.on('close', function() {
-		sockets--;
+      if (message.up) {
+        hosts[message.up] = 1;
+      } else {
+        delete hosts[message.down];
+      }
+    });
+  });
+  socket.on('error', function() {
+    socket.destroy();
+  });
+  socket.on('end', function() {
+    socket.destroy();
+  });
+  socket.on('close', function() {
+    sockets--;
 
-		Object.keys(hosts).forEach(function(host) {
-			request.post(host+'/gc', noop);
-		});
+    Object.keys(hosts).forEach(function(host) {
+      request.post(host + '/gc', noop);
+    });
 
-		gc();
-	});
+    gc();
+  });
 });
 
-timeout = setTimeout(gc, 10000);
+timeout = setTimeout(gc, 100);
 server.listen(67567, '127.0.0.1');
