@@ -50,5 +50,5 @@ var server = net.createServer(function(socket) {
 	});
 });
 
-timeout = setTimeout(gc, 100);
+timeout = setTimeout(gc, 10000);
 server.listen(67567, '127.0.0.1');
