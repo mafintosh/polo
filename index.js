@@ -9,10 +9,12 @@ var polo = function(options) {
 	var next = function(name) {
 		var list = that.all(name);
 
-		return list[Math.floor(Math.random()*list.length)];
+		return list[Math.floor(Math.random() * list.length)];
 	};
 	var parse = function(name) {
-		var result = {name: name};
+		var result = {
+			name: name
+		};
 
 		name.replace(/\{([^\}]+)\}/g, function(_, app) {
 			result.name = app;
@@ -31,17 +33,17 @@ var polo = function(options) {
 
 		if (!app) return null;
 
-		return parsed.format ? formatURL(parsed.format.replace('{'+parsed.name+'}', app.address)) : app;
+		return parsed.format ? formatURL(parsed.format.replace('{' + parsed.name + '}', app.address)) : app;
 	};
 
 	ups.setMaxListeners(0);
 	repo.on('pop', function(name, service) {
 		that.emit('down', name, service);
-		that.emit(name+'/down', service);
+		that.emit(name + '/down', service);
 	});
 	repo.on('push', function(name, service) {
 		that.emit('up', name, service);
-		that.emit(name+'/up', service);
+		that.emit(name + '/up', service);
 		ups.emit(name);
 	});
 	repo.on('error', function(error) {
@@ -52,9 +54,15 @@ var polo = function(options) {
 		// passed a http server as second argument
 		if (port && typeof port.address === 'function') port = port.address().port;
 		// passed host:port as second argument
-		if (typeof service === 'string' && typeof port === 'string') return that.put({name:service, host:port});
+		if (typeof service === 'string' && typeof port === 'string') return that.put({
+			name: service,
+			host: port
+		});
 		// passed port as second argument
-		if (typeof service === 'string' && typeof port === 'number') return that.put({name:service, port:port});
+		if (typeof service === 'string' && typeof port === 'number') return that.put({
+			name: service,
+			port: port
+		});
 		// name is required
 		if (!service.name) throw new Error('invalid arguments - name required');
 
@@ -68,7 +76,7 @@ var polo = function(options) {
 			service.port = parseInt(parts[1], 10);
 		}
 
-		service.address = service.address || service.host+':'+service.port;
+		service.address = service.address || service.host + ':' + service.port;
 		repo.push(service.name, service);
 		return service;
 	};
@@ -88,6 +96,10 @@ var polo = function(options) {
 	};
 	that.all = function(name) {
 		return name ? repo.get(name) : repo.all();
+	};
+
+	that.stop = function() {
+		repo.close();
 	};
 
 	return that;

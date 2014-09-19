@@ -8,6 +8,7 @@ module.exports = function(me, options, callback) {
 	var env = process.env;
 	var hosts = {};
 	var found = 0;
+	var loopTimer;
 
 	var port = options.port || MULTICAST_PORT;
 	var multicast = !(options.multicast === false || (options.multicast === undefined && process.env.NODE_ENV === 'development'));
@@ -16,7 +17,7 @@ module.exports = function(me, options, callback) {
 		hosts = {};
 	};
 	var encode = function() {
-		return 'ann;'+me+(Object.keys(hosts).length ? ';'+Object.keys(hosts).join(';') : '');
+		return 'ann;' + me + (Object.keys(hosts).length ? ';' + Object.keys(hosts).join(';') : '');
 	};
 	var send = function(msg) {
 		msg = new Buffer(msg);
@@ -30,13 +31,13 @@ module.exports = function(me, options, callback) {
 			if (timeout > 15000) return clear();
 
 			send(encode());
-			setTimeout(loop, timeout *= 2);
+			loopTimer = setTimeout(loop, timeout *= 2);
 		};
 
 		loop();
 	};
 
-	me = Math.random().toString(16).substr(2)+'@'+me;
+	me = Math.random().toString(16).substr(2) + '@' + me;
 
 	process.env = {};
 	server.bind(port);
@@ -61,7 +62,7 @@ module.exports = function(me, options, callback) {
 		if (!from) return;
 
 		if (type === 'ann') {
-			send('ack;'+me);
+			send('ack;' + me);
 		}
 		if (!hosts[from]) {
 			found++;
@@ -72,5 +73,14 @@ module.exports = function(me, options, callback) {
 
 	find();
 
-	return find;
+	var announcer = {};
+	announcer.close = function() {
+		if (server) {
+			server.close();
+			server = null;
+		}
+		clearTimeout(loopTimer);
+	};
+
+	return announcer;
 };

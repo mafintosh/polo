@@ -43,12 +43,12 @@ var server = net.createServer(function(socket) {
 		sockets--;
 
 		Object.keys(hosts).forEach(function(host) {
-			request.post(host+'/gc', noop);
+			request.post(host + '/gc', noop);
 		});
 
 		gc();
 	});
 });
 
-timeout = setTimeout(gc, 10000);
+timeout = setTimeout(gc, 100);
 server.listen(67567, '127.0.0.1');
