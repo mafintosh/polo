@@ -13,7 +13,11 @@
     "zeroconf",
     "discovery",
     "configuration",
-    "service discovery"
+    "service discovery",
+    "bonjour", 
+    "dns_sd", 
+    "mdns",
+    "mDNSResponder"
   ],
   "engines": [
     "node >= 0.8.0"
