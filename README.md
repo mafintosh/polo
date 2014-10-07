@@ -39,8 +39,9 @@ var apps = polo();
 
 apps.once('up', function(name, service) {                   // up fires everytime some service joins
 	console.log(apps.get(name));                        // should print out the joining service, e.g. hello-world
-	console.log(apps.get('http://{service.address}/')); // shorthand for formatting the address
-	                                                    // of a service into a string
+	console.log(apps.get('http://{' + name + '}/'));    // shorthand to get the app byt its name and additionally 
+	                                                    // instruct the app to use this URL format for the service
+	                                                    // The app will replace {name} with service.address
 });
 ```
 
