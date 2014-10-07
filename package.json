@@ -1,7 +1,7 @@
 {
   "name": "polo",
   "author": "Mathias Buus Madsen <mathiasbuus@gmail.com>",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "dependencies": {
     "common": ">=0.2.0",
     "root": "0.4.x",
@@ -14,8 +14,8 @@
     "discovery",
     "configuration",
     "service discovery",
-    "bonjour", 
-    "dns_sd", 
+    "bonjour",
+    "dns_sd",
     "mdns",
     "mDNSResponder"
   ],
