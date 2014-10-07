@@ -37,10 +37,11 @@ Now spin up another node process and polo will automatically distribute informat
 var polo = require('polo');
 var apps = polo();
 
-apps.once('up', function(name, service) {           // up fires everytime some service joins
-	console.log(apps.get('hello-world'));           // should print out the joining service
-	console.log(apps.get('http://{hello-world}/')); // shorthand for formatting the address
-	                                                // of a service into a string
+apps.once('up', function(name, service) {                   // up fires everytime some service joins
+	console.log(apps.get(name));                        // should print out the joining service, e.g. hello-world
+	console.log(apps.get('http://{' + name + '}/'));    // shorthand to get the app byt its name and additionally 
+	                                                    // instruct the app to use this URL format for the service
+	                                                    // The app will replace {name} with service.address
 });
 ```
 
