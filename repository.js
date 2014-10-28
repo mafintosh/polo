@@ -284,7 +284,7 @@ var listen = function(options) {
 	return that;
 };
 var proxy = function(options) {
-	var key = 'port=' + options.port + ',multicast=' + options.multicast;
+	var key = 'host=' + options.host + ',port=' + options.port + ',multicast=' + options.multicast;
 	var shared = pool[key] || (pool[key] = listen(options));
 	var that = common.createEmitter();
 
