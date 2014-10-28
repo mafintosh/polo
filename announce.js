@@ -11,6 +11,7 @@ module.exports = function(me, options, callback) {
 	var loopTimer;
 
 	var port = options.port || MULTICAST_PORT;
+	var address = options.address || MULTICAST_ADDRESS;
 	var multicast = !(options.multicast === false || (options.multicast === undefined && process.env.NODE_ENV === 'development'));
 
 	var clear = function() {
@@ -21,7 +22,7 @@ module.exports = function(me, options, callback) {
 	};
 	var send = function(msg) {
 		msg = new Buffer(msg);
-		server.send(msg, 0, msg.length, port, MULTICAST_ADDRESS);
+		server.send(msg, 0, msg.length, port, address);
 	};
 	var find = function() {
 		var then = found;
@@ -46,7 +47,7 @@ module.exports = function(me, options, callback) {
 	server.on('listening', function() {
 		if (!multicast) server.setMulticastTTL(0);
 		try {
-			server.addMembership(MULTICAST_ADDRESS);
+			server.addMembership(address);
 		} catch (e) {
 			callback(e);
 		}
