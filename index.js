@@ -50,21 +50,23 @@ var polo = function(options) {
 		that.emit('error', error);
 	});
 
-	that.put = function(service, port) {
+	that.put = function(service, port, data) {
 		// passed a http server as second argument
 		if (port && typeof port.address === 'function') port = port.address().port;
 		// passed host:port as second argument
 		if (typeof service === 'string' && typeof port === 'string') {
 			return that.put({
 				name: service,
-				host: port
+				host: port,
+				data: data
 			});
 		}
 		// passed port as second argument
 		if (typeof service === 'string' && typeof port === 'number') {
 			return that.put({
 				name: service,
-				port: port
+				port: port,
+				data: data
 			});
 		}
 		// name is required
