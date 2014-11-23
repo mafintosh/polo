@@ -189,7 +189,7 @@ var listen = function(options) {
 			request.post({
 				uri: repo.uri + '/data/' + key,
 				headers: {
-					'x-repository': repo.uri
+					'x-repository': own.uri
 				},
 				json: true,
 				body: values
