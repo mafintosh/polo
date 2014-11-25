@@ -3,9 +3,9 @@
   "author": "Mathias Buus Madsen <mathiasbuus@gmail.com>",
   "version": "0.7.0",
   "dependencies": {
-    "common": ">=0.2.0",
-    "root": "0.4.x",
-    "request": "*"
+    "common": "^0.2.5",
+    "request": "^2.48.0",
+    "root": "^3.0.0"
   },
   "repository": "git://github.com/mafintosh/polo",
   "description": "a zero configuration discovery service written completely in Javascript",

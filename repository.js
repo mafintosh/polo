@@ -197,29 +197,29 @@ var listen = function(options) {
 		});
 	});
 
-	app.use(root.json);
-
 	app.get('/' + id, function(req, res) {
-		res.json(own);
+		res.send(own);
 	});
 	app.get('/' + id + '/ping', function(req, res) {
-		res.json({
+		res.send({
 			ack: true
 		});
 	});
 	app.post('/' + id + '/gc', function(req, res) {
 		gc();
-		res.json({
+		res.send({
 			ack: true
 		});
 	});
 	app.post('/' + id + '/data/:key', function(req, res) {
 		var repo = repository(req.headers['x-repository'] || own.uri);
 
-		repo.push(req.params.key, req.json);
-		res.json({
-			ack: true
-		});
+		req.on('json', function(body) {
+			repo.push(req.params.key, body);
+			res.json({
+				ack: true
+			});
+		})
 	});
 
 	app.listen(function(addr, server) {
