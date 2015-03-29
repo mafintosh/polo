@@ -4,7 +4,7 @@ var MULTICAST_ADDRESS = '224.0.0.234';
 var MULTICAST_PORT = 60547;
 
 module.exports = function(me, options, callback) {
-   var server = dgram.createSocket({type: 'udp4', reuseAddr: true, toString: function () { return 'udp4' }});
+	var server = dgram.createSocket({type: 'udp4', reuseAddr: true, toString: function () { return 'udp4' }});
 	var env = process.env;
 	var hosts = {};
 	var found = 0;
