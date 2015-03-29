@@ -1,7 +1,7 @@
 {
   "name": "polo",
   "author": "Mathias Buus Madsen <mathiasbuus@gmail.com>",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "dependencies": {
     "common": "^0.2.5",
     "request": "^2.48.0",
